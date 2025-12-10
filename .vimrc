@@ -79,3 +79,25 @@ inoremap <Right> <ESC>:echoe "Use l"<CR>
 inoremap <Up>    <ESC>:echoe "Use k"<CR>
 inoremap <Down>  <ESC>:echoe "Use j"<CR>
 
+" CtrlP Configuration
+" Map Ctrl+P to open CtrlP (default binding)
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
+
+" For MacVim (GUI), also map Cmd+P to CtrlP
+if has("gui_macvim")
+  nnoremap <D-p> :CtrlP<CR>
+endif
+
+" Set working directory to the nearest ancestor with .git
+let g:ctrlp_working_path_mode = 'ra'
+
+" Show hidden files
+let g:ctrlp_show_hidden = 1
+
+" Custom file ignore patterns (optional)
+let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\v[\/]\.(git|hg|svn)$',
+  \ 'file': '\v\.(exe|so|dll|DS_Store)$',
+  \ }
+
