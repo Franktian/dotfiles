@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(ln:*)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(gh pr *)"
     ],
     "deny": [],
     "ask": []
