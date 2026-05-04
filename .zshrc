@@ -108,6 +108,17 @@ export PATH="$HOME/.local/bin:$PATH"
 # Homebrew
 eval "$(/usr/local/bin/brew shellenv)"
 
+### BEGIN--Instacart Shell Settings. (Updated: Wed  4 Jun 2025 12:20:54 EDT. [Script Version 1.3.27])
+# This Line Added Automatically by Instacart Setup Script
+# The sourced file contains all of the instacart utilities and shell settings
+# To remove this functionality, leave the block, and enter "NO-TOUCH" in the BEGIN line, and comment the line below:
+source /Users/franktian/.instacart_shell_profile
+### END--Instacart Shell Settings.
+
+# >>> gohan setup, do not edit this section <<<
+# !! Contents within this block are managed by gohan !!
+[ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
+# <<< gohan setup end <<<
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -117,12 +128,52 @@ export NVM_DIR="$HOME/.nvm"
 # Regenerate with: openclaw completion --shell zsh > ~/.openclaw-completion.zsh
 [[ -f ~/.openclaw-completion.zsh ]] && source ~/.openclaw-completion.zsh
 
+# BENTO_COMPLETIONS_START
+export BENTO_COMPLETIONS_VERSION=2
+
+autoload -U compinit; compinit
+source <(bento completion zsh --silent)
+export PGHOST=localhost # Set PGHOST to talk to bento postgres
+
+ava-shell () {
+	local tmpfile=$(mktemp);
+	trap 'rm -f $tmpfile' EXIT;
+	if bento ava shell "$@" --result-file $tmpfile; then
+		if [ -e "$tmpfile" ]; then
+			local fixed_cmd=$(cat $tmpfile);
+			print -z "$fixed_cmd";
+		fi
+	else
+		return 1
+	fi
+};
+alias '?a'='ava-shell';
+
+# BENTO_COMPLETIONS_END
+
+alias claude="olive claude"
+
 # bun completions
-[ -s "/Users/yawentian/.bun/_bun" ] && source "/Users/yawentian/.bun/_bun"
+[ -s "/Users/franktian/.bun/_bun" ] && source "/Users/franktian/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# Slack CLI (avoid rbenv shim conflict)
+alias slack=/opt/homebrew/bin/slack
+
+# tmux-to-cmux shim: fake tmux env so Claude Code uses native split mode
+if [[ -n "$CMUX_SURFACE_ID" || "$(ps -o comm= -p $PPID 2>/dev/null)" == *cmux* || -S /tmp/cmux.sock ]]; then
+  export TMUX="/tmp/cmux.sock,$$,0"
+  export TMUX_PANE="%0"
+fi
+
+# cmux claude-teams shortcut
+alias ct='cmux claude-teams'
+
 # fzf shell integration (Ctrl+R history, Ctrl+T file picker, Alt+C cd)
 source <(fzf --zsh)
+
+# Claude Code - disable flickering output
+export CLAUDE_CODE_NO_FLICKER=1
