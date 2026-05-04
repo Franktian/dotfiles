@@ -155,7 +155,10 @@ alias '?a'='ava-shell';
 
 # BENTO_COMPLETIONS_END
 
-alias claude="olive claude"
+# Only alias claude through olive on the work device (where olive is installed)
+if command -v olive >/dev/null 2>&1; then
+  alias claude="olive claude"
+fi
 
 # bun completions
 [ -s "/Users/franktian/.bun/_bun" ] && source "/Users/franktian/.bun/_bun"
