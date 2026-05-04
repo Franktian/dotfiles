@@ -105,8 +105,12 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 export PATH="$HOME/.local/bin:$PATH"
 
-# Homebrew
-eval "$(/usr/local/bin/brew shellenv)"
+# Homebrew (supports both Apple Silicon and Intel Macs)
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
 
 ### BEGIN--Instacart Shell Settings. (Updated: Wed  4 Jun 2025 12:20:54 EDT. [Script Version 1.3.27])
 # This Line Added Automatically by Instacart Setup Script
