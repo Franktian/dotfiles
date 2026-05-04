@@ -116,12 +116,16 @@ fi
 # This Line Added Automatically by Instacart Setup Script
 # The sourced file contains all of the instacart utilities and shell settings
 # To remove this functionality, leave the block, and enter "NO-TOUCH" in the BEGIN line, and comment the line below:
-source /Users/franktian/.instacart_shell_profile
+if command -v olive >/dev/null 2>&1; then
+  source /Users/franktian/.instacart_shell_profile
+fi
 ### END--Instacart Shell Settings.
 
 # >>> gohan setup, do not edit this section <<<
 # !! Contents within this block are managed by gohan !!
-[ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
+if command -v olive >/dev/null 2>&1; then
+  [ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
+fi
 # <<< gohan setup end <<<
 
 export NVM_DIR="$HOME/.nvm"
@@ -133,13 +137,14 @@ export NVM_DIR="$HOME/.nvm"
 [[ -f ~/.openclaw-completion.zsh ]] && source ~/.openclaw-completion.zsh
 
 # BENTO_COMPLETIONS_START
-export BENTO_COMPLETIONS_VERSION=2
+if command -v olive >/dev/null 2>&1; then
+  export BENTO_COMPLETIONS_VERSION=2
 
-autoload -U compinit; compinit
-source <(bento completion zsh --silent)
-export PGHOST=localhost # Set PGHOST to talk to bento postgres
+  autoload -U compinit; compinit
+  source <(bento completion zsh --silent)
+  export PGHOST=localhost # Set PGHOST to talk to bento postgres
 
-ava-shell () {
+  ava-shell () {
 	local tmpfile=$(mktemp);
 	trap 'rm -f $tmpfile' EXIT;
 	if bento ava shell "$@" --result-file $tmpfile; then
@@ -150,9 +155,9 @@ ava-shell () {
 	else
 		return 1
 	fi
-};
-alias '?a'='ava-shell';
-
+  };
+  alias '?a'='ava-shell';
+fi
 # BENTO_COMPLETIONS_END
 
 # Only alias claude through olive on the work device (where olive is installed)
