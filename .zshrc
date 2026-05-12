@@ -116,18 +116,10 @@ fi
 # This Line Added Automatically by Instacart Setup Script
 # The sourced file contains all of the instacart utilities and shell settings
 # To remove this functionality, leave the block, and enter "NO-TOUCH" in the BEGIN line, and comment the line below:
-if command -v olive >/dev/null 2>&1; then
+if [ -f /Users/franktian/.instacart_shell_profile ]; then
   source /Users/franktian/.instacart_shell_profile
 fi
 ### END--Instacart Shell Settings.
-
-# >>> gohan setup, do not edit this section <<<
-# !! Contents within this block are managed by gohan !!
-if command -v olive >/dev/null 2>&1; then
-  [ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
-fi
-# <<< gohan setup end <<<
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
@@ -136,29 +128,6 @@ export NVM_DIR="$HOME/.nvm"
 # Regenerate with: openclaw completion --shell zsh > ~/.openclaw-completion.zsh
 [[ -f ~/.openclaw-completion.zsh ]] && source ~/.openclaw-completion.zsh
 
-# BENTO_COMPLETIONS_START
-if command -v olive >/dev/null 2>&1; then
-  export BENTO_COMPLETIONS_VERSION=2
-
-  autoload -U compinit; compinit
-  source <(bento completion zsh --silent)
-  export PGHOST=localhost # Set PGHOST to talk to bento postgres
-
-  ava-shell () {
-	local tmpfile=$(mktemp);
-	trap 'rm -f $tmpfile' EXIT;
-	if bento ava shell "$@" --result-file $tmpfile; then
-		if [ -e "$tmpfile" ]; then
-			local fixed_cmd=$(cat $tmpfile);
-			print -z "$fixed_cmd";
-		fi
-	else
-		return 1
-	fi
-  };
-  alias '?a'='ava-shell';
-fi
-# BENTO_COMPLETIONS_END
 
 # Only alias claude through olive on the work device (where olive is installed)
 if command -v olive >/dev/null 2>&1; then
@@ -189,3 +158,31 @@ source <(fzf --zsh)
 
 # Claude Code - disable flickering output
 export CLAUDE_CODE_NO_FLICKER=1
+
+# >>> gohan setup, do not edit this section <<<
+# !! Contents within this block are managed by gohan !!
+[ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
+# <<< gohan setup end <<<
+
+# BENTO_COMPLETIONS_START
+export BENTO_COMPLETIONS_VERSION=2
+
+autoload -U compinit; compinit
+source <(bento completion zsh --silent)
+export PGHOST=localhost # Set PGHOST to talk to bento postgres
+
+ava-shell () {
+	local tmpfile=$(mktemp);
+	trap 'rm -f $tmpfile' EXIT;
+	if bento ava shell "$@" --result-file $tmpfile; then
+		if [ -e "$tmpfile" ]; then
+			local fixed_cmd=$(cat $tmpfile);
+			print -z "$fixed_cmd";
+		fi
+	else
+		return 1
+	fi
+};
+alias '?a'='ava-shell';
+
+# BENTO_COMPLETIONS_END
