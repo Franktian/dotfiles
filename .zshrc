@@ -9,7 +9,8 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="agnoster"
+# Theme disabled here; using starship instead (initialized below, after oh-my-zsh).
+ZSH_THEME=""
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -73,7 +74,19 @@ ZSH_THEME="agnoster"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
 
+# Skip oh-my-zsh's daily auto-update check (saves ~400ms on every shell start).
+# Run `omz update` manually when you want to update.
+zstyle ':omz:update' mode disabled
+
 source $ZSH/oh-my-zsh.sh
+
+# starship prompt (cached init for faster startup)
+# Regenerate: starship init zsh > ~/.starship-init.zsh
+if [[ -f ~/.starship-init.zsh ]]; then
+  source ~/.starship-init.zsh
+elif command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
 # User configuration
 
@@ -105,8 +118,11 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 export PATH="$HOME/.local/bin:$PATH"
 
-# Homebrew (supports both Apple Silicon and Intel Macs)
-if [ -x /opt/homebrew/bin/brew ]; then
+# Homebrew shellenv (cached for faster startup, ~34ms saved)
+# Regenerate: /opt/homebrew/bin/brew shellenv > ~/.brew-shellenv.zsh
+if [[ -f ~/.brew-shellenv.zsh ]]; then
+  source ~/.brew-shellenv.zsh
+elif [ -x /opt/homebrew/bin/brew ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 elif [ -x /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
@@ -117,12 +133,59 @@ fi
 # The sourced file contains all of the instacart utilities and shell settings
 # To remove this functionality, leave the block, and enter "NO-TOUCH" in the BEGIN line, and comment the line below:
 if [ -f /Users/franktian/.instacart_shell_profile ]; then
-  source /Users/franktian/.instacart_shell_profile
+  # Skip:
+  #  - eager nvm load (we lazy-load nvm below)
+  #  - insta-setup tab-completion generation (~270ms: forks insta-setup + extra compinit)
+  #  - eager rbenv init/rehash (~180ms: stripped via sed; we lazy-load rbenv below)
+  INSTACART_SUPPRESS_NVM=true \
+  INSTACART_SUPPRESS_SETUP_COMPLETION=true \
+    source <(sed '/### BEGIN--Ruby rbenv tool/,/### END--Ruby rbenv tool/d' /Users/franktian/.instacart_shell_profile)
 fi
 ### END--Instacart Shell Settings.
+
+# Lazy-load rbenv: put shims on PATH eagerly so `ruby`/`gem`/`bundle` work,
+# but defer `rbenv init -` (and the slow `rbenv rehash`) until first `rbenv` call.
+if [ -d "$HOME/.rbenv/shims" ]; then
+  export PATH="$HOME/.rbenv/shims:$PATH"
+  export RBENV_SHELL=zsh
+  rbenv() {
+    unset -f rbenv
+    eval "$(command rbenv init - --no-rehash zsh 2>/dev/null || command rbenv init -)"
+    rbenv "$@"
+  }
+fi
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Lazy-load nvm: shim nvm/node/npm/npx/corepack/yarn/pnpm so the shell starts fast.
+# On first invocation, the shims unset themselves, source nvm, and re-dispatch.
+# Put the default node bin on PATH so `node`/`npm` work without triggering load.
+if [ -s "$NVM_DIR/alias/default" ]; then
+  _nvm_default_version="$(command cat "$NVM_DIR/alias/default" 2>/dev/null)"
+  # Resolve aliases like "22" -> the highest installed v22.x.x
+  if [ -d "$NVM_DIR/versions/node/v$_nvm_default_version" ]; then
+    export PATH="$NVM_DIR/versions/node/v$_nvm_default_version/bin:$PATH"
+  else
+    _nvm_resolved="$(command ls "$NVM_DIR/versions/node" 2>/dev/null | command grep -E "^v${_nvm_default_version}\\." | sort -V | tail -1)"
+    [ -n "$_nvm_resolved" ] && export PATH="$NVM_DIR/versions/node/$_nvm_resolved/bin:$PATH"
+    unset _nvm_resolved
+  fi
+  unset _nvm_default_version
+fi
+_load_nvm() {
+  unset -f nvm node npm npx corepack yarn pnpm 2>/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+nvm()     { _load_nvm; nvm "$@"; }
+# node/npm/npx/corepack/yarn/pnpm are already on PATH from the default version,
+# so only shim them as a fallback if no default is installed.
+if ! command -v node >/dev/null 2>&1; then
+  node()    { _load_nvm; node "$@"; }
+  npm()     { _load_nvm; npm "$@"; }
+  npx()     { _load_nvm; npx "$@"; }
+  corepack(){ _load_nvm; corepack "$@"; }
+  yarn()    { _load_nvm; yarn "$@"; }
+  pnpm()    { _load_nvm; pnpm "$@"; }
+fi
 
 # OpenClaw Completion (cached for faster startup)
 # Regenerate with: openclaw completion --shell zsh > ~/.openclaw-completion.zsh
@@ -154,7 +217,12 @@ fi
 alias ct='cmux claude-teams'
 
 # fzf shell integration (Ctrl+R history, Ctrl+T file picker, Alt+C cd)
-source <(fzf --zsh)
+# Cached for faster startup. Regenerate: fzf --zsh > ~/.fzf-shell.zsh
+if [[ -f ~/.fzf-shell.zsh ]]; then
+  source ~/.fzf-shell.zsh
+else
+  source <(fzf --zsh)
+fi
 
 # Claude Code - disable flickering output
 export CLAUDE_CODE_NO_FLICKER=1
@@ -167,8 +235,15 @@ export CLAUDE_CODE_NO_FLICKER=1
 # BENTO_COMPLETIONS_START
 export BENTO_COMPLETIONS_VERSION=2
 
-autoload -U compinit; compinit
-source <(bento completion zsh --silent)
+# compinit already ran via oh-my-zsh; skip the duplicate call here.
+# Bento completion cached for faster startup (~100ms saved).
+# Regenerate: bento completion zsh --silent > ~/.bento-completion.zsh
+if [[ -f ~/.bento-completion.zsh ]]; then
+  source ~/.bento-completion.zsh
+else
+  autoload -U compinit; compinit
+  source <(bento completion zsh --silent)
+fi
 export PGHOST=localhost # Set PGHOST to talk to bento postgres
 
 ava-shell () {
