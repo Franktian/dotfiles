@@ -132,14 +132,14 @@ fi
 # This Line Added Automatically by Instacart Setup Script
 # The sourced file contains all of the instacart utilities and shell settings
 # To remove this functionality, leave the block, and enter "NO-TOUCH" in the BEGIN line, and comment the line below:
-if [ -f /Users/franktian/.instacart_shell_profile ]; then
+if [ -f $HOME/.instacart_shell_profile ]; then
   # Skip:
   #  - eager nvm load (we lazy-load nvm below)
   #  - insta-setup tab-completion generation (~270ms: forks insta-setup + extra compinit)
   #  - eager rbenv init/rehash (~180ms: stripped via sed; we lazy-load rbenv below)
   INSTACART_SUPPRESS_NVM=true \
   INSTACART_SUPPRESS_SETUP_COMPLETION=true \
-    source <(sed '/### BEGIN--Ruby rbenv tool/,/### END--Ruby rbenv tool/d' /Users/franktian/.instacart_shell_profile)
+    source <(sed '/### BEGIN--Ruby rbenv tool/,/### END--Ruby rbenv tool/d' $HOME/.instacart_shell_profile)
 fi
 ### END--Instacart Shell Settings.
 
@@ -198,7 +198,7 @@ if command -v olive >/dev/null 2>&1; then
 fi
 
 # bun completions
-[ -s "/Users/franktian/.bun/_bun" ] && source "/Users/franktian/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -220,7 +220,7 @@ alias ct='cmux claude-teams'
 # Cached for faster startup. Regenerate: fzf --zsh > ~/.fzf-shell.zsh
 if [[ -f ~/.fzf-shell.zsh ]]; then
   source ~/.fzf-shell.zsh
-else
+elif (( $+commands[fzf] )); then
   source <(fzf --zsh)
 fi
 
@@ -229,7 +229,7 @@ export CLAUDE_CODE_NO_FLICKER=1
 
 # >>> gohan setup, do not edit this section <<<
 # !! Contents within this block are managed by gohan !!
-[ -f "/Users/franktian/.config/gohan/gohan.sh" ] && source "/Users/franktian/.config/gohan/gohan.sh"
+[ -f "$HOME/.config/gohan/gohan.sh" ] && source "$HOME/.config/gohan/gohan.sh"
 # <<< gohan setup end <<<
 
 # BENTO_COMPLETIONS_START
@@ -240,7 +240,7 @@ export BENTO_COMPLETIONS_VERSION=2
 # Regenerate: bento completion zsh --silent > ~/.bento-completion.zsh
 if [[ -f ~/.bento-completion.zsh ]]; then
   source ~/.bento-completion.zsh
-else
+elif (( $+commands[bento] )); then
   autoload -U compinit; compinit
   source <(bento completion zsh --silent)
 fi
