@@ -1,6 +1,7 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
-export PATH="$HOME/nvim-macos-x86_64/bin:$PATH"
+# Neovim comes from Homebrew (brew install neovim); legacy Intel tarball path kept only if present.
+[ -d "$HOME/nvim-macos-x86_64/bin" ] && export PATH="$HOME/nvim-macos-x86_64/bin:$PATH"
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -205,7 +206,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Slack CLI (avoid rbenv shim conflict)
-alias slack=/opt/homebrew/bin/slack
+[ -x /opt/homebrew/bin/slack ] && alias slack=/opt/homebrew/bin/slack
 
 # tmux-to-cmux shim: fake tmux env so Claude Code uses native split mode
 if [[ -n "$CMUX_SURFACE_ID" || "$(ps -o comm= -p $PPID 2>/dev/null)" == *cmux* || -S /tmp/cmux.sock ]]; then
@@ -244,7 +245,7 @@ elif (( $+commands[bento] )); then
   autoload -U compinit; compinit
   source <(bento completion zsh --silent)
 fi
-export PGHOST=localhost # Set PGHOST to talk to bento postgres
+(( $+commands[bento] )) && export PGHOST=localhost # Set PGHOST to talk to bento postgres
 
 ava-shell () {
 	local tmpfile=$(mktemp);
@@ -261,3 +262,6 @@ ava-shell () {
 alias '?a'='ava-shell';
 
 # BENTO_COMPLETIONS_END
+
+# Per-machine overrides (not tracked in the repo)
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
